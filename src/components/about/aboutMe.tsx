@@ -1,58 +1,60 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, message, Table } from 'antd'
-import { aboutService } from '@/services/myInfo.service'
 import { getAboutMeColumns } from './getByActionColumns'
 import EditModal from './editModal'
-
-const fetchAboutMe = async () => {
-  try {
-    const { success, data, message } = await aboutService.getAboutMe()
-    if (!success) throw new Error(message)
-    return data
-  } catch (error) {
-    throw error
-  }
-}
-
-const editAboutMe = async (id: number, postBody: { paragraph: About['paragraph'] }) => {
-  try {
-    const { success, message } = await aboutService.editAboutMe(id, postBody)
-    if (!success) throw new Error(message)
-  } catch (error) {
-    throw error
-  }
-}
-
-const deleteAboutMe = async (id: number) => {
-  try {
-    const { success, message } = await aboutService.deleteAboutMe(id)
-    if (!success) throw new Error(message)
-  } catch (error) {
-    throw error
-  }
-}
-
-const addAboutMe = async (postBody: { paragraph: About['paragraph'] }) => {
-  try {
-    const { success, message } = await aboutService.addAboutMe(postBody)
-    if (!success) throw new Error(message)
-  } catch (error) {
-    throw error
-  }
-}
+import useAboutHooks from '@/hooks/useAboutHooks'
 
 const editColumns = ['paragraph']
 
 export default function AboutMe() {
   const [messageApi, contextHolder] = message.useMessage()
-  const [data, setData] = useState<About[]>([])
-  const [confirmLoading, setConfirmLoading] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const { data, confirmLoading, isLoading, fetchAboutMe, editAboutMe, deleteAboutMe, addAboutMe } = useAboutHooks()
+
   const [modalOpen, setModalOpen] = useState(false)
   const [editItemId, setEditItemId] = useState<null | About['id']>(null)
-  const [pendingDeleteId, setPendingDeleteItemId] = useState<null | About['id']>(null)
+
+  const editData = useMemo(() => {
+    return data.find((item) => item.id === editItemId)
+  }, [data, editItemId])
+
+  const getData = useCallback(async () => {
+    try {
+      await fetchAboutMe()
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      }
+    }
+  }, [fetchAboutMe])
+
+  const handleDelete = useCallback(
+    async (id: number) => {
+      messageApi.open({
+        type: 'loading',
+        content: 'Delete in progress',
+        duration: 0
+      })
+
+      try {
+        await deleteAboutMe(id)
+        messageApi.destroy()
+        messageApi.open({
+          type: 'success',
+          content: 'Delete success!!'
+        })
+
+        await getData()
+      } catch (error) {
+        messageApi.destroy()
+        if (error instanceof Error) {
+          messageApi.error(error?.message)
+        }
+      }
+    },
+    [messageApi, deleteAboutMe, getData]
+  )
 
   const columns = useMemo(() => {
     return getAboutMeColumns({
@@ -61,30 +63,16 @@ export default function AboutMe() {
         setEditItemId(record.id)
       },
       onDelete: (record) => {
-        setPendingDeleteItemId(record.id)
+        handleDelete(record.id)
       }
     })
-  }, [])
+  }, [handleDelete])
 
-  const editData = useMemo(() => {
-    return data.find((item) => item.id === editItemId)
-  }, [data, editItemId])
-
-  const handleCancel = () => {
-    setEditItemId(null)
-    setModalOpen(false)
-  }
-
-  /**
-   * 執行編輯 / 執行添加
-   */
-  const handleEditOk = async (newValues: About) => {
+  const handleSave = async (newValues: About) => {
     const isAddMode = !editItemId
     const postBody = { paragraph: newValues.paragraph }
 
     try {
-      setConfirmLoading(true)
-
       switch (true) {
         case isAddMode: {
           await addAboutMe(postBody)
@@ -98,59 +86,24 @@ export default function AboutMe() {
         }
       }
 
-      const data = await fetchAboutMe()
-      setData(data)
+      await getData()
     } catch (error) {
       if (error instanceof Error) {
         messageApi.error(error.message)
       }
     } finally {
-      setConfirmLoading(false)
       setModalOpen(false)
     }
   }
 
-  /**
-   * 獲取數據
-   */
+  const handleCancel = () => {
+    setEditItemId(null)
+    setModalOpen(false)
+  }
+
   useEffect(() => {
-    fetchAboutMe()
-      .then((res) => setData(res))
-      .catch((error) => messageApi.error(error?.message))
-      .finally(() => setIsLoading(false))
-  }, [messageApi])
-
-  /**
-   * 執行刪除
-   */
-  useEffect(() => {
-    if (!pendingDeleteId) return
-
-    const handleDelete = async () => {
-      messageApi.open({
-        type: 'loading',
-        content: 'Delete in progress..',
-        duration: 0
-      })
-      try {
-        await deleteAboutMe(pendingDeleteId)
-        messageApi.destroy()
-        messageApi.success('delete success!!')
-
-        const data = await fetchAboutMe()
-        setData(data)
-      } catch (error) {
-        messageApi.destroy()
-        if (error instanceof Error) {
-          messageApi.error(error.message)
-        }
-      } finally {
-        setPendingDeleteItemId(null)
-      }
-    }
-
-    handleDelete()
-  }, [messageApi, pendingDeleteId])
+    getData()
+  }, [getData])
 
   return (
     <section>
@@ -162,7 +115,7 @@ export default function AboutMe() {
         Add a paragraph
       </Button>
 
-      {modalOpen && <EditModal<About> title={editData ? 'edit About Me' : 'add About Me'} isOpen={modalOpen} confirmLoading={confirmLoading} editData={editData} editColumns={editColumns} onSave={handleEditOk} onClose={handleCancel} />}
+      {modalOpen && <EditModal<About> title={editData ? 'edit About Me' : 'add About Me'} isOpen={modalOpen} confirmLoading={confirmLoading} editData={editData} editColumns={editColumns} onSave={handleSave} onClose={handleCancel} />}
     </section>
   )
 }
