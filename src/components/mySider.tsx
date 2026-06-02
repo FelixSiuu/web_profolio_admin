@@ -8,13 +8,26 @@ import { useRouter } from 'next/navigation'
 
 const { Header, Sider } = Layout
 
+const MenuItems = [
+  {
+    key: 'aboutme',
+    icon: <UserOutlined />,
+    label: 'About Me'
+  },
+  {
+    key: 'coreskills',
+    icon: <UserOutlined />,
+    label: 'Core Skills'
+  }
+]
+
 export default function MySider() {
   const [collapsed, setCollapsed] = useState(false)
   const {
     token: { colorBgContainer }
   } = theme.useToken()
   const router = useRouter()
-  const [activeKey, setActiveKey] = useState('myinfo')
+  const [activeKey, setActiveKey] = useState(MenuItems[0].key)
 
   const onClick: MenuProps['onClick'] = (e) => {
     setActiveKey(e.key)
@@ -46,13 +59,7 @@ export default function MySider() {
         theme="dark"
         mode="inline"
         // defaultSelectedKeys={['myinfo']}
-        items={[
-          {
-            key: 'myinfo',
-            icon: <UserOutlined />,
-            label: '我的信息'
-          }
-        ]}
+        items={MenuItems}
         selectedKeys={[activeKey]}
         onClick={onClick}
       />

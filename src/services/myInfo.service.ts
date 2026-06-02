@@ -10,6 +10,14 @@ export const aboutService = {
   editAboutMe: async (id: number, postBody: { paragraph: About['paragraph'] }): Promise<BaseVo<void>> => {
     const url = `${baseURL}/about/${id}`
     return api.put(url, postBody)
+  },
+  deleteAboutMe: async (id: number): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/about/${id}`
+    return api.delete(url)
+  },
+  addAboutMe: async (postBody: { paragraph: About['paragraph'] }): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/about`
+    return api.post(url, postBody)
   }
 }
 

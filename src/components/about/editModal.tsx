@@ -6,7 +6,7 @@ interface EditModal<T> {
   isOpen: boolean
   confirmLoading: boolean
   editColumns: string[]
-  editData: T
+  editData: T | undefined | null
   onClose: () => void
   onSave: (values: T) => Promise<void>
 }
@@ -23,6 +23,9 @@ export default function EditModal<T extends { id: string | number }>({ title, is
     }
   }
 
+  /**
+   * 如果editData為空，為添加，否則為編輯，並填入數據
+   */
   useEffect(() => {
     if (isOpen && editData) {
       for (const [key, value] of Object.entries(editData)) {

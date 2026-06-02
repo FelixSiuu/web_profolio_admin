@@ -1,6 +1,7 @@
 import { utils } from '@/utils'
-import { Button, Space } from 'antd'
+import { Button, Popconfirm, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+import { QuestionCircleOutlined } from '@ant-design/icons'
 
 interface ColumnActions<T> {
   onEdit: (record: T) => void
@@ -43,9 +44,12 @@ export const getAboutMeColumns = <T extends About>(actions: ColumnActions<T>): C
         <Button type="link" onClick={() => actions.onEdit(record)}>
           edit
         </Button>
-        <Button type="link" danger onClick={() => actions.onDelete(record)}>
-          delete
-        </Button>
+
+        <Popconfirm title="Delete the paragraph" onConfirm={() => actions.onDelete(record)} description="Are you sure to delete this paragraph?" icon={<QuestionCircleOutlined style={{ color: 'red' }} />}>
+          <Button type="link" danger>
+            delete
+          </Button>
+        </Popconfirm>
       </Space>
     )
   }
