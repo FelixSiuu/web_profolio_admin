@@ -1,18 +1,18 @@
-import { aboutDto, aboutService } from '@/services/myInfo.service'
 import { useCallback, useState } from 'react'
+import { coreSkillsService, skillDto } from '@/services/myInfo.service'
 
-export default function useAboutHooks() {
-  const [data, setData] = useState<About[]>([])
+export default function useSkillsHooks() {
+  const [data, setData] = useState<CoreSkill[]>([])
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   /**
    * 獲取數據
    */
-  const fetchAboutMe = useCallback(async () => {
+  const fetchCoreSkills = useCallback(async () => {
     setIsLoading(true)
     try {
-      const { success, data, message } = await aboutService.getAboutMe()
+      const { success, data, message } = await coreSkillsService.getCoreSkills()
       if (!success) throw new Error(message)
       setData(data)
     } catch (error) {
@@ -25,10 +25,10 @@ export default function useAboutHooks() {
   /**
    * 執行刪除
    */
-  const deleteAboutMe = useCallback(async (id: number) => {
+  const deleteCoreSkill = useCallback(async (id: number) => {
     setIsLoading(true)
     try {
-      const { success, message } = await aboutService.deleteAboutMe(id)
+      const { success, message } = await coreSkillsService.deleteCoreSkill(id)
       if (!success) throw new Error(message)
     } catch (error) {
       throw error
@@ -40,10 +40,10 @@ export default function useAboutHooks() {
   /**
    *  執行編輯
    */
-  const editAboutMe = useCallback(async (id: number, postBody: aboutDto) => {
+  const editCoreSkill = useCallback(async (id: number, postBody: skillDto) => {
     setConfirmLoading(true)
     try {
-      const { success, message } = await aboutService.editAboutMe(id, postBody)
+      const { success, message } = await coreSkillsService.editCoreSkill(id, postBody)
       if (!success) throw new Error(message)
     } catch (error) {
       throw error
@@ -55,10 +55,10 @@ export default function useAboutHooks() {
   /**
    *  執行添加
    */
-  const addAboutMe = useCallback(async (postBody: aboutDto) => {
+  const addCoreSkill = useCallback(async (postBody: skillDto) => {
     setConfirmLoading(true)
     try {
-      const { success, message } = await aboutService.addAboutMe(postBody)
+      const { success, message } = await coreSkillsService.addCoreSkill(postBody)
       if (!success) throw new Error(message)
     } catch (error) {
       throw error
@@ -67,5 +67,13 @@ export default function useAboutHooks() {
     }
   }, [])
 
-  return { data, confirmLoading, isLoading, fetchAboutMe, editAboutMe, deleteAboutMe, addAboutMe }
+  return {
+    data,
+    confirmLoading,
+    isLoading,
+    fetchCoreSkills,
+    deleteCoreSkill,
+    editCoreSkill,
+    addCoreSkill
+  }
 }

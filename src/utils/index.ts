@@ -1,4 +1,6 @@
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+dayjs.extend(utc)
 
 export const utils = {
   countYear: (start: string, end: string | null): number => {
@@ -7,6 +9,6 @@ export const utils = {
     return targetDate.diff(startDate, 'year')
   },
   formatDateString: (dateString: string) => {
-    return dayjs(dateString).add(8, 'hours').format('YYYY-MM-DD HH:mm:ss')
+    return dayjs.utc(dateString).local().format('YYYY-MM-DD HH:mm:ss')
   }
 }

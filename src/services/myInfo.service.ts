@@ -2,12 +2,15 @@ import api from './api'
 
 const baseURL = 'http://localhost:3000/api/v1/myInfo'
 
+export interface aboutDto {
+  paragraph: About['paragraph']
+}
 export const aboutService = {
   getAboutMe: async (): Promise<BaseVo<About[]>> => {
     const url = `${baseURL}/about`
     return api.get(url)
   },
-  editAboutMe: async (id: number, postBody: { paragraph: About['paragraph'] }): Promise<BaseVo<void>> => {
+  editAboutMe: async (id: number, postBody: aboutDto): Promise<BaseVo<void>> => {
     const url = `${baseURL}/about/${id}`
     return api.put(url, postBody)
   },
@@ -15,7 +18,7 @@ export const aboutService = {
     const url = `${baseURL}/about/${id}`
     return api.delete(url)
   },
-  addAboutMe: async (postBody: { paragraph: About['paragraph'] }): Promise<BaseVo<void>> => {
+  addAboutMe: async (postBody: aboutDto): Promise<BaseVo<void>> => {
     const url = `${baseURL}/about`
     return api.post(url, postBody)
   }
@@ -28,10 +31,26 @@ export const workingExpService = {
   }
 }
 
+export interface skillDto {
+  summary: CoreSkill['summary']
+  details: CoreSkill['details']
+}
 export const coreSkillsService = {
   getCoreSkills: async (): Promise<BaseVo<CoreSkill[]>> => {
     const url = `${baseURL}/coreSkills`
     return api.get(url)
+  },
+  editCoreSkill: async (id: number, postBody: skillDto): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/coreSkills/${id}`
+    return api.put(url, postBody)
+  },
+  deleteCoreSkill: async (id: number): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/coreSkills/${id}`
+    return api.delete(url)
+  },
+  addCoreSkill: async (postBody: skillDto): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/coreSkills`
+    return api.post(url, postBody)
   }
 }
 

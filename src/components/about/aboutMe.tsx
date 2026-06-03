@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, message, Table } from 'antd'
 import { getAboutMeColumns } from './getByActionColumns'
-import EditModal from './editModal'
+import EditModal from '../editModal'
 import useAboutHooks from '@/hooks/useAboutHooks'
 
 const editColumns = ['paragraph']

@@ -11,7 +11,7 @@ interface EditModal<T> {
   onSave: (values: T) => Promise<void>
 }
 
-export default function EditModal<T extends { id: string | number }>({ title, isOpen, confirmLoading, editColumns, editData, onClose, onSave }: EditModal<T>) {
+export default function EditModal<T>({ title, isOpen, confirmLoading, editColumns, editData, onClose, onSave }: EditModal<T>) {
   const [form] = Form.useForm()
 
   const handleOk = async () => {
