@@ -12,8 +12,8 @@ export default function useSkillsHooks() {
   const fetchCoreSkills = useCallback(async () => {
     setIsLoading(true)
     try {
-      const { success, data, message } = await coreSkillsService.getCoreSkills()
-      if (!success) throw new Error(message)
+      const { isSuccess, data, message } = await coreSkillsService.getCoreSkills()
+      if (!isSuccess) throw new Error(message)
       setData(data)
     } catch (error) {
       throw error
@@ -28,8 +28,8 @@ export default function useSkillsHooks() {
   const deleteCoreSkill = useCallback(async (id: number) => {
     setIsLoading(true)
     try {
-      const { success, message } = await coreSkillsService.deleteCoreSkill(id)
-      if (!success) throw new Error(message)
+      const { isSuccess, message } = await coreSkillsService.deleteCoreSkill(id)
+      if (!isSuccess) throw new Error(message)
     } catch (error) {
       throw error
     } finally {
@@ -43,8 +43,8 @@ export default function useSkillsHooks() {
   const editCoreSkill = useCallback(async (id: number, postBody: skillDto) => {
     setConfirmLoading(true)
     try {
-      const { success, message } = await coreSkillsService.editCoreSkill(id, postBody)
-      if (!success) throw new Error(message)
+      const { isSuccess, message } = await coreSkillsService.editCoreSkill(id, postBody)
+      if (!isSuccess) throw new Error(message)
     } catch (error) {
       throw error
     } finally {
@@ -58,8 +58,8 @@ export default function useSkillsHooks() {
   const addCoreSkill = useCallback(async (postBody: skillDto) => {
     setConfirmLoading(true)
     try {
-      const { success, message } = await coreSkillsService.addCoreSkill(postBody)
-      if (!success) throw new Error(message)
+      const { isSuccess, message } = await coreSkillsService.addCoreSkill(postBody)
+      if (!isSuccess) throw new Error(message)
     } catch (error) {
       throw error
     } finally {

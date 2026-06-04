@@ -12,8 +12,8 @@ export default function useAboutHooks() {
   const fetchAboutMe = useCallback(async () => {
     setIsLoading(true)
     try {
-      const { success, data, message } = await aboutService.getAboutMe()
-      if (!success) throw new Error(message)
+      const { isSuccess, data, message } = await aboutService.getAboutMe()
+      if (!isSuccess) throw new Error(message)
       setData(data)
     } catch (error) {
       throw error
@@ -28,8 +28,8 @@ export default function useAboutHooks() {
   const deleteAboutMe = useCallback(async (id: number) => {
     setIsLoading(true)
     try {
-      const { success, message } = await aboutService.deleteAboutMe(id)
-      if (!success) throw new Error(message)
+      const { isSuccess, message } = await aboutService.deleteAboutMe(id)
+      if (!isSuccess) throw new Error(message)
     } catch (error) {
       throw error
     } finally {
@@ -43,8 +43,8 @@ export default function useAboutHooks() {
   const editAboutMe = useCallback(async (id: number, postBody: aboutDto) => {
     setConfirmLoading(true)
     try {
-      const { success, message } = await aboutService.editAboutMe(id, postBody)
-      if (!success) throw new Error(message)
+      const { isSuccess, message } = await aboutService.editAboutMe(id, postBody)
+      if (!isSuccess) throw new Error(message)
     } catch (error) {
       throw error
     } finally {
@@ -58,8 +58,8 @@ export default function useAboutHooks() {
   const addAboutMe = useCallback(async (postBody: aboutDto) => {
     setConfirmLoading(true)
     try {
-      const { success, message } = await aboutService.addAboutMe(postBody)
-      if (!success) throw new Error(message)
+      const { isSuccess, message } = await aboutService.addAboutMe(postBody)
+      if (!isSuccess) throw new Error(message)
     } catch (error) {
       throw error
     } finally {

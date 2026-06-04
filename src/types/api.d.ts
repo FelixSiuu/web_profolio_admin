@@ -1,14 +1,14 @@
-// 1. 成功的結構：success 必為 true，data 必有值
+// 1. 成功的結構：isSuccess 必為 true，data 必有值
 declare interface SuccessVo<T> {
-  success: true
+  isSuccess: true
   code: 'OK'
   message: string
   data: T
 }
 
-// 2. 失敗的結構：success 必為 false，data 固定為 null
+// 2. 失敗的結構：isSuccess 必為 false，data 固定為 null
 declare interface FailVo {
-  success: false
+  isSuccess: false
   code: string // 錯誤代碼
   message: string
   data: null
