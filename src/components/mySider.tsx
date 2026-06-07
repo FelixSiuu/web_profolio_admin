@@ -1,23 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { UserOutlined } from '@ant-design/icons'
+import { useState } from 'react'
+import { UserOutlined, StarOutlined, HistoryOutlined } from '@ant-design/icons'
 import { Button, Layout, Menu, theme } from 'antd'
 import type { MenuProps } from 'antd'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 const { Header, Sider } = Layout
 
 const MenuItems = [
   {
-    key: 'aboutme',
+    key: '/overview/aboutme',
     icon: <UserOutlined />,
     label: 'About Me'
   },
   {
-    key: 'coreskills',
-    icon: <UserOutlined />,
+    key: '/overview/coreskills',
+    icon: <StarOutlined />,
     label: 'Core Skills'
+  },
+  {
+    key: '/overview/workingexperience',
+    icon: <HistoryOutlined />,
+    label: 'Working Experience'
   }
 ]
 
@@ -27,17 +32,11 @@ export default function MySider() {
     token: { colorBgContainer }
   } = theme.useToken()
   const router = useRouter()
-  const [activeKey, setActiveKey] = useState(MenuItems[0].key)
+  const pathname = usePathname()
 
   const onClick: MenuProps['onClick'] = (e) => {
-    setActiveKey(e.key)
+    router.push(e.key)
   }
-
-  useEffect(() => {
-    if (!router) return
-
-    router.push(`/overview/${activeKey}`)
-  }, [activeKey, router])
 
   return (
     <Sider trigger={null} collapsible collapsed={collapsed}>
@@ -55,14 +54,7 @@ export default function MySider() {
       </Header> */}
 
       <div className="demo-logo-vertical" />
-      <Menu
-        theme="dark"
-        mode="inline"
-        // defaultSelectedKeys={['myinfo']}
-        items={MenuItems}
-        selectedKeys={[activeKey]}
-        onClick={onClick}
-      />
+      <Menu theme="dark" mode="inline" items={MenuItems} selectedKeys={[pathname]} onClick={onClick} />
     </Sider>
   )
 }

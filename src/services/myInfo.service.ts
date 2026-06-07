@@ -23,14 +23,6 @@ export const aboutService = {
     return api.post(url, postBody)
   }
 }
-
-export const workingExpService = {
-  getWorkingExp: async (): Promise<BaseVo<WorkingExperience[]>> => {
-    const url = `${baseURL}/workingExperiences`
-    return api.get(url)
-  }
-}
-
 export interface skillDto {
   summary: CoreSkill['summary']
   details: CoreSkill['details']
@@ -50,6 +42,26 @@ export const coreSkillsService = {
   },
   addCoreSkill: async (postBody: skillDto): Promise<BaseVo<void>> => {
     const url = `${baseURL}/coreSkills`
+    return api.post(url, postBody)
+  }
+}
+
+export type WorkingExpDto = Omit<WorkingExperience, 'id' | 'createTime' | 'updateTime'>
+export const workingExpService = {
+  getWorkingExp: async (): Promise<BaseVo<WorkingExperience[]>> => {
+    const url = `${baseURL}/workingExperiences`
+    return api.get(url)
+  },
+  editWorkingExp: async (id: number, postBody: WorkingExpDto): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/workingExperiences/${id}`
+    return api.post(url, postBody)
+  },
+  deleteWorkingExp: async (id: number): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/workingExperiences/${id}`
+    return api.delete(url)
+  },
+  addWorkingExp: async (postBody: WorkingExpDto): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/workingExperiences`
     return api.post(url, postBody)
   }
 }

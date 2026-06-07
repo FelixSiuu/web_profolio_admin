@@ -8,21 +8,44 @@ interface ColumnActions<T> {
   onDelete: (record: T) => void
 }
 
-export const getCoreSkillsColumns = <T extends CoreSkill>(actions: ColumnActions<T>): ColumnsType<T> => [
+export const getWorkingExperienceColumns = <T extends WorkingExperience>(actions: ColumnActions<T>): ColumnsType<T> => [
   {
     title: 'id',
     dataIndex: 'id',
     key: 'id'
   },
   {
-    title: 'summary',
-    dataIndex: 'summary',
-    key: 'summary'
+    title: 'working id',
+    dataIndex: 'workingId',
+    key: 'workingId'
   },
   {
-    title: 'details',
-    dataIndex: 'details',
-    key: 'details'
+    title: 'start date',
+    dataIndex: 'startDate',
+    key: 'startDate'
+  },
+  {
+    title: 'end date',
+    dataIndex: 'endDate',
+    key: 'endDate',
+    render: (_, record) => {
+      return <>{!record.endDate ? 'Now' : record.endDate}</>
+    }
+  },
+  {
+    title: 'job title',
+    dataIndex: 'jobTitle',
+    key: 'jobTitle'
+  },
+  {
+    title: 'company',
+    dataIndex: 'company',
+    key: 'company'
+  },
+  {
+    title: 'location',
+    dataIndex: 'location',
+    key: 'location'
   },
   {
     title: 'create time',
@@ -57,5 +80,28 @@ export const getCoreSkillsColumns = <T extends CoreSkill>(actions: ColumnActions
         </Popconfirm>
       </Space>
     )
+  }
+]
+
+export const getSubTableColumns = <T extends KeyResponsibility>(): ColumnsType<T> => [
+  {
+    title: 'id',
+    dataIndex: 'id',
+    key: 'id'
+  },
+  {
+    title: 'working id',
+    dataIndex: 'workingId',
+    key: 'workingId'
+  },
+  {
+    title: 'title',
+    dataIndex: 'title',
+    key: 'title'
+  },
+  {
+    title: 'responsibility',
+    dataIndex: 'responsibility',
+    key: 'responsibility'
   }
 ]

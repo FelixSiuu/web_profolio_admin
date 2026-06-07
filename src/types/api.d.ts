@@ -34,6 +34,7 @@ declare interface CoreSkill {
 
 declare interface KeyResponsibility {
   id: number
+  workingId: number
   title: string | null
   responsibility: string
 }
