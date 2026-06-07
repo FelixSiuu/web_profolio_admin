@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Button, message, Table } from 'antd'
 import { getAboutMeColumns } from './getByActionColumns'
 import EditModal from '../editModal'
@@ -10,63 +10,34 @@ const editColumns = ['paragraph']
 
 export default function AboutMe() {
   const [messageApi, contextHolder] = message.useMessage()
-  const { data, confirmLoading, isLoading, fetchAboutMe, editAboutMe, deleteAboutMe, addAboutMe } = useAboutHooks()
+  const { data, confirmLoading, isLoading, editAboutMe, deleteAboutMe, addAboutMe } = useAboutHooks()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editItemId, setEditItemId] = useState<null | About['id']>(null)
 
-  const editData = useMemo(() => {
-    return data.find((item) => item.id === editItemId)
-  }, [data, editItemId])
+  const editData = data.find((item) => item.id === editItemId)
 
-  const getData = useCallback(async () => {
+  const handleDelete = async (id: number) => {
+    messageApi.open({
+      type: 'loading',
+      content: 'Delete in progress',
+      duration: 0
+    })
+
     try {
-      await fetchAboutMe()
+      await deleteAboutMe(id)
+      messageApi.destroy()
+      messageApi.open({
+        type: 'success',
+        content: 'Delete success!!'
+      })
     } catch (error) {
+      messageApi.destroy()
       if (error instanceof Error) {
-        console.error(error.message)
+        messageApi.error(error?.message)
       }
     }
-  }, [fetchAboutMe])
-
-  const handleDelete = useCallback(
-    async (id: number) => {
-      messageApi.open({
-        type: 'loading',
-        content: 'Delete in progress',
-        duration: 0
-      })
-
-      try {
-        await deleteAboutMe(id)
-        messageApi.destroy()
-        messageApi.open({
-          type: 'success',
-          content: 'Delete success!!'
-        })
-
-        await getData()
-      } catch (error) {
-        messageApi.destroy()
-        if (error instanceof Error) {
-          messageApi.error(error?.message)
-        }
-      }
-    },
-    [messageApi, deleteAboutMe, getData]
-  )
-
-  const columns = useMemo(() => {
-    return getAboutMeColumns({
-      onEdit: (record) => {
-        setModalOpen(true)
-        setEditItemId(record.id)
-      },
-      onDelete: (record) => {
-        handleDelete(record.id)
-      }
-    })
-  }, [handleDelete])
+  }
 
   const handleSave = async (newValues: About) => {
     const isAddMode = !editItemId
@@ -80,13 +51,14 @@ export default function AboutMe() {
           break
         }
         case !isAddMode: {
-          await editAboutMe(editItemId, postBody)
+          await editAboutMe({
+            id: editItemId,
+            postBody
+          })
           messageApi.success('edit success!!')
           break
         }
       }
-
-      await getData()
     } catch (error) {
       if (error instanceof Error) {
         messageApi.error(error.message)
@@ -101,9 +73,15 @@ export default function AboutMe() {
     setModalOpen(false)
   }
 
-  useEffect(() => {
-    getData()
-  }, [getData])
+  const columns = getAboutMeColumns({
+    onEdit: (record) => {
+      setModalOpen(true)
+      setEditItemId(record.id)
+    },
+    onDelete: (record) => {
+      handleDelete(record.id)
+    }
+  })
 
   return (
     <section>

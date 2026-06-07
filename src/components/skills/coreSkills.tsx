@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Button, message, Table } from 'antd'
 import { getCoreSkillsColumns } from './getByActionColumns'
 import EditModal from '../editModal'
@@ -10,89 +10,57 @@ const editColumns = ['summary', 'details']
 
 export default function CoreSkills() {
   const [messageApi, contextHolder] = message.useMessage()
-  const { data, confirmLoading, isLoading, fetchCoreSkills, deleteCoreSkill, editCoreSkill, addCoreSkill } = useSkillsHooks()
+
+  // 🎯 1. 狀態全自動接管：從 Hook 拿到自動綁定快取的 data 與 loading 狀態
+  const { data, confirmLoading, isLoading, deleteCoreSkill, editCoreSkill, addCoreSkill } = useSkillsHooks()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editItemId, setEditItemId] = useState<null | CoreSkill['id']>(null)
 
-  const editData = useMemo(() => {
-    return data.find((item) => item.id === editItemId)
-  }, [data, editItemId])
+  const editData = data.find((item) => item.id === editItemId)
 
-  const getData = useCallback(async () => {
+  // 🎯 3. 簡化後的刪除邏輯：不再需要手動呼叫 getData()
+  const handleDelete = async (id: number) => {
+    messageApi.open({ type: 'loading', content: 'Delete in progress', duration: 0 })
     try {
-      await fetchCoreSkills()
+      await deleteCoreSkill(id)
+      messageApi.destroy()
+      messageApi.success('Delete success!!')
     } catch (error) {
-      if (error instanceof Error) {
-        console.error(error.message)
-      }
+      messageApi.destroy()
+      if (error instanceof Error) messageApi.error(error.message)
     }
-  }, [fetchCoreSkills])
+  }
 
-  const handleDelete = useCallback(
-    async (id: number) => {
-      messageApi.open({
-        type: 'loading',
-        content: 'Delete in progress',
-        duration: 0
-      })
-
-      try {
-        await deleteCoreSkill(id)
-        messageApi.destroy()
-        messageApi.open({
-          type: 'success',
-          content: 'Delete success!!'
-        })
-
-        await getData()
-      } catch (error) {
-        messageApi.destroy()
-        if (error instanceof Error) {
-          messageApi.error(error?.message)
-        }
-      }
+  // 4. 表格欄位配置
+  const columns = getCoreSkillsColumns({
+    onEdit: (record) => {
+      setEditItemId(record.id)
+      setModalOpen(true)
     },
-    [messageApi, deleteCoreSkill, getData]
-  )
+    onDelete: (record) => {
+      handleDelete(record.id)
+    }
+  })
 
-  const columns = useMemo(() => {
-    return getCoreSkillsColumns({
-      onEdit: (record) => {
-        setModalOpen(true)
-        setEditItemId(record.id)
-      },
-      onDelete: (record) => {
-        handleDelete(record.id)
-      }
-    })
-  }, [handleDelete])
-
+  // 🎯 5. 簡化後的儲存邏輯：同樣砍掉手動的 getData()
   const handleSave = async (newValues: CoreSkill) => {
     const isAddMode = !editItemId
     const postBody = { summary: newValues.summary, details: newValues.details }
 
     try {
-      switch (true) {
-        case isAddMode: {
-          await addCoreSkill(postBody)
-          messageApi.success('add success!!')
-          break
-        }
-        case !isAddMode: {
-          await editCoreSkill(editItemId, postBody)
-          messageApi.success('edit success!!')
-          break
-        }
+      if (isAddMode) {
+        await addCoreSkill(postBody)
+      } else {
+        await editCoreSkill({
+          id: editItemId,
+          postBody: postBody
+        })
       }
-
-      await getData()
-    } catch (error) {
-      if (error instanceof Error) {
-        messageApi.error(error.message)
-      }
-    } finally {
       setModalOpen(false)
+      setEditItemId(null)
+    } catch (error) {
+      if (error instanceof Error) messageApi.error(error.message)
     }
   }
 
@@ -100,10 +68,6 @@ export default function CoreSkills() {
     setEditItemId(null)
     setModalOpen(false)
   }
-
-  useEffect(() => {
-    getData()
-  }, [getData])
 
   return (
     <section>

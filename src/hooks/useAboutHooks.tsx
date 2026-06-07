@@ -1,71 +1,55 @@
 import { aboutDto, aboutService } from '@/services/myInfo.service'
-import { useCallback, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export default function useAboutHooks() {
-  const [data, setData] = useState<About[]>([])
-  const [confirmLoading, setConfirmLoading] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const queryClient = useQueryClient()
 
   /**
    * 獲取數據
    */
-  const fetchAboutMe = useCallback(async () => {
-    setIsLoading(true)
-    try {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ['getAboutMe'],
+    queryFn: async () => {
       const { isSuccess, data, message } = await aboutService.getAboutMe()
       if (!isSuccess) throw new Error(message)
-      setData(data)
-    } catch (error) {
-      throw error
-    } finally {
-      setIsLoading(false)
+      return data
     }
-  }, [])
-
-  /**
-   * 執行刪除
-   */
-  const deleteAboutMe = useCallback(async (id: number) => {
-    setIsLoading(true)
-    try {
-      const { isSuccess, message } = await aboutService.deleteAboutMe(id)
-      if (!isSuccess) throw new Error(message)
-    } catch (error) {
-      throw error
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  /**
-   *  執行編輯
-   */
-  const editAboutMe = useCallback(async (id: number, postBody: aboutDto) => {
-    setConfirmLoading(true)
-    try {
-      const { isSuccess, message } = await aboutService.editAboutMe(id, postBody)
-      if (!isSuccess) throw new Error(message)
-    } catch (error) {
-      throw error
-    } finally {
-      setConfirmLoading(false)
-    }
-  }, [])
+  })
 
   /**
    *  執行添加
    */
-  const addAboutMe = useCallback(async (postBody: aboutDto) => {
-    setConfirmLoading(true)
-    try {
-      const { isSuccess, message } = await aboutService.addAboutMe(postBody)
-      if (!isSuccess) throw new Error(message)
-    } catch (error) {
-      throw error
-    } finally {
-      setConfirmLoading(false)
+  const { mutateAsync: addAboutMe, isPending: isAddLoading } = useMutation({
+    mutationFn: (postBody: aboutDto) => aboutService.addAboutMe(postBody),
+    onSuccess: (res) => {
+      if (!res.isSuccess) throw new Error(res.message)
+      queryClient.invalidateQueries({ queryKey: ['getAboutMe'] })
     }
-  }, [])
+  })
 
-  return { data, confirmLoading, isLoading, fetchAboutMe, editAboutMe, deleteAboutMe, addAboutMe }
+  /**
+   *  執行編輯
+   */
+  const { mutateAsync: editAboutMe, isPending: isEditLoading } = useMutation({
+    mutationFn: ({ id, postBody }: { id: number; postBody: aboutDto }) => aboutService.editAboutMe(id, postBody),
+    onSuccess: (res) => {
+      if (!res.isSuccess) throw new Error(res.message)
+      queryClient.invalidateQueries({ queryKey: ['getAboutMe'] })
+    }
+  })
+
+  /**
+   * 執行刪除
+   */
+  const { mutateAsync: deleteAboutMe } = useMutation({
+    mutationFn: (id: number) => aboutService.deleteAboutMe(id),
+    onSuccess: (res) => {
+      if (!res.isSuccess) throw new Error(res.message)
+      queryClient.invalidateQueries({ queryKey: ['getAboutMe'] })
+    }
+  })
+
+  const confirmLoading = isAddLoading || isEditLoading
+
+  return { data, confirmLoading, isLoading, editAboutMe, deleteAboutMe, addAboutMe }
 }

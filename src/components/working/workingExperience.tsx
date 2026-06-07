@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Button, message, Table } from 'antd'
 import { getWorkingExperienceColumns, getSubTableColumns } from './getByActionColumns'
 import useExperienceHooks from '@/hooks/useExperienceHooks'
@@ -34,63 +34,34 @@ const editColumns = [
 
 export default function WorkingExperience() {
   const [messageApi, contextHolder] = message.useMessage()
-  const { data, confirmLoading, isLoading, fetchWorkingExp, deleteWorkingExp, editWorkingExp, addWorkingExp } = useExperienceHooks()
+  const { data, confirmLoading, isLoading, deleteWorkingExp, editWorkingExp, addWorkingExp } = useExperienceHooks()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editItemId, setEditItemId] = useState<null | WorkingExperience['id']>(null)
 
-  const editData = useMemo(() => {
-    return data.find((item) => item.id === editItemId)
-  }, [data, editItemId])
+  const editData = data.find((item) => item.id === editItemId)
 
-  const getData = useCallback(async () => {
+  const handleDelete = async (id: number) => {
+    messageApi.open({
+      type: 'loading',
+      content: 'Delete in progress',
+      duration: 0
+    })
+
     try {
-      await fetchWorkingExp()
+      await deleteWorkingExp(id)
+      messageApi.destroy()
+      messageApi.open({
+        type: 'success',
+        content: 'Delete success!!'
+      })
     } catch (error) {
+      messageApi.destroy()
       if (error instanceof Error) {
-        console.error(error.message)
+        messageApi.error(error?.message)
       }
     }
-  }, [fetchWorkingExp])
-
-  const handleDelete = useCallback(
-    async (id: number) => {
-      messageApi.open({
-        type: 'loading',
-        content: 'Delete in progress',
-        duration: 0
-      })
-
-      try {
-        await deleteWorkingExp(id)
-        messageApi.destroy()
-        messageApi.open({
-          type: 'success',
-          content: 'Delete success!!'
-        })
-
-        await getData()
-      } catch (error) {
-        messageApi.destroy()
-        if (error instanceof Error) {
-          messageApi.error(error?.message)
-        }
-      }
-    },
-    [deleteWorkingExp, getData, messageApi]
-  )
-
-  const columns = useMemo(() => {
-    return getWorkingExperienceColumns({
-      onEdit: (record) => {
-        setModalOpen(true)
-        setEditItemId(record.id)
-      },
-      onDelete: (record) => {
-        handleDelete(record.id)
-      }
-    })
-  }, [handleDelete])
+  }
 
   const handleSave = async (newValues: WorkingExperience) => {
     const isAddMode = !editItemId
@@ -104,13 +75,14 @@ export default function WorkingExperience() {
           break
         }
         case !isAddMode: {
-          await editWorkingExp(editItemId, postBody)
+          await editWorkingExp({
+            id: editItemId,
+            postBody
+          })
           messageApi.success('edit success!!')
           break
         }
       }
-
-      await getData()
     } catch (error) {
       if (error instanceof Error) {
         messageApi.error(error.message)
@@ -125,9 +97,15 @@ export default function WorkingExperience() {
     setModalOpen(false)
   }
 
-  useEffect(() => {
-    getData()
-  }, [getData])
+  const columns = getWorkingExperienceColumns({
+    onEdit: (record) => {
+      setModalOpen(true)
+      setEditItemId(record.id)
+    },
+    onDelete: (record) => {
+      handleDelete(record.id)
+    }
+  })
 
   const expandedRowRender = (record: WorkingExperience) => <Table<KeyResponsibility> columns={getSubTableColumns()} dataSource={record.keyResponsibilities ?? []} rowKey={'id'} pagination={false} />
 
