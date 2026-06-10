@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { UserOutlined, StarOutlined, HistoryOutlined } from '@ant-design/icons'
+import { UserOutlined, StarOutlined, HistoryOutlined, BookOutlined } from '@ant-design/icons'
 import { Button, Layout, Menu, theme } from 'antd'
 import type { MenuProps } from 'antd'
 import { usePathname, useRouter } from 'next/navigation'
@@ -23,6 +23,11 @@ const MenuItems = [
     key: '/overview/workingexperience',
     icon: <HistoryOutlined />,
     label: 'Working Experience'
+  },
+  {
+    key: '/overview/education',
+    icon: <BookOutlined />,
+    label: 'Education'
   }
 ]
 

@@ -27,10 +27,7 @@ export const getWorkingExperienceColumns = <T extends WorkingExperience>(actions
   {
     title: 'end date',
     dataIndex: 'endDate',
-    key: 'endDate',
-    render: (_, record) => {
-      return <>{!record.endDate ? 'Now' : record.endDate}</>
-    }
+    key: 'endDate'
   },
   {
     title: 'job title',
@@ -73,7 +70,7 @@ export const getWorkingExperienceColumns = <T extends WorkingExperience>(actions
           edit
         </Button>
 
-        <Popconfirm title="Delete the paragraph" onConfirm={() => actions.onDelete(record)} description="Are you sure to delete?" icon={<QuestionCircleOutlined style={{ color: 'red' }} />}>
+        <Popconfirm title="Delete the data" onConfirm={() => actions.onDelete(record)} description="Are you sure to delete?" icon={<QuestionCircleOutlined style={{ color: 'red' }} />}>
           <Button type="link" danger>
             delete
           </Button>

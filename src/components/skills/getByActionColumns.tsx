@@ -50,7 +50,7 @@ export const getCoreSkillsColumns = <T extends CoreSkill>(actions: ColumnActions
           edit
         </Button>
 
-        <Popconfirm title="Delete the paragraph" onConfirm={() => actions.onDelete(record)} description="Are you sure to delete?" icon={<QuestionCircleOutlined style={{ color: 'red' }} />}>
+        <Popconfirm title="Delete the data" onConfirm={() => actions.onDelete(record)} description="Are you sure to delete?" icon={<QuestionCircleOutlined style={{ color: 'red' }} />}>
           <Button type="link" danger>
             delete
           </Button>

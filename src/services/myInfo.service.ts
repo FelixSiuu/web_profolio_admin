@@ -66,9 +66,22 @@ export const workingExpService = {
   }
 }
 
+export type EduDto = Omit<Education, 'id'>
 export const educationService = {
   getEducation: async (): Promise<BaseVo<Education[]>> => {
     const url = `${baseURL}/education`
     return api.get(url)
+  },
+  editEducation: async (id: number, postBody: EduDto): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/education/${id}`
+    return api.post(url, postBody)
+  },
+  deleteEducation: async (id: number): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/education/${id}`
+    return api.delete(url)
+  },
+  addEducation: async (postBody: EduDto): Promise<BaseVo<void>> => {
+    const url = `${baseURL}/education`
+    return api.post(url, postBody)
   }
 }
