@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { UserOutlined, StarOutlined, HistoryOutlined, BookOutlined } from '@ant-design/icons'
-import { Button, Layout, Menu, theme } from 'antd'
+import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import { usePathname, useRouter } from 'next/navigation'
 
-const { Header, Sider } = Layout
+const { Sider } = Layout
 
 const MenuItems = [
   {
@@ -33,9 +33,6 @@ const MenuItems = [
 
 export default function MySider() {
   const [collapsed, setCollapsed] = useState(false)
-  const {
-    token: { colorBgContainer }
-  } = theme.useToken()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -44,21 +41,7 @@ export default function MySider() {
   }
 
   return (
-    <Sider trigger={null} collapsible collapsed={collapsed}>
-      {/* <Header style={{ padding: 0, background: colorBgContainer }}>
-        <Button
-          type="text"
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          onClick={() => setCollapsed(!collapsed)}
-          style={{
-            fontSize: '16px',
-            width: 64,
-            height: 64
-          }}
-        />
-      </Header> */}
-
-      <div className="demo-logo-vertical" />
+    <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
       <Menu theme="dark" mode="inline" items={MenuItems} selectedKeys={[pathname]} onClick={onClick} />
     </Sider>
   )

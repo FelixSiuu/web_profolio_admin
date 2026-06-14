@@ -20,9 +20,11 @@ export default function useAboutHooks() {
    *  執行添加
    */
   const { mutateAsync: addAboutMe, isPending: isAddLoading } = useMutation({
-    mutationFn: (postBody: aboutDto) => aboutService.addAboutMe(postBody),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+    mutationFn: async (postBody: aboutDto) => {
+      const { isSuccess, message } = await aboutService.addAboutMe(postBody)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getAboutMe'] })
     }
   })
@@ -31,9 +33,11 @@ export default function useAboutHooks() {
    *  執行編輯
    */
   const { mutateAsync: editAboutMe, isPending: isEditLoading } = useMutation({
-    mutationFn: ({ id, postBody }: { id: number; postBody: aboutDto }) => aboutService.editAboutMe(id, postBody),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+    mutationFn: async ({ id, postBody }: { id: number; postBody: aboutDto }) => {
+      const { isSuccess, message } = await aboutService.editAboutMe(id, postBody)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getAboutMe'] })
     }
   })
@@ -41,15 +45,17 @@ export default function useAboutHooks() {
   /**
    * 執行刪除
    */
-  const { mutateAsync: deleteAboutMe } = useMutation({
-    mutationFn: (id: number) => aboutService.deleteAboutMe(id),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+  const { mutateAsync: deleteAboutMe, isPending: isDeleteLoading } = useMutation({
+    mutationFn: async (id: number) => {
+      const { isSuccess, message } = await aboutService.deleteAboutMe(id)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getAboutMe'] })
     }
   })
 
-  const confirmLoading = isAddLoading || isEditLoading
+  const confirmLoading = isAddLoading || isEditLoading || isDeleteLoading
 
   return { data, confirmLoading, isLoading, editAboutMe, deleteAboutMe, addAboutMe }
 }

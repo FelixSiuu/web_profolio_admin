@@ -7,8 +7,9 @@ import MySider from '@/components/mySider'
 
 export default function OverViewLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Layout>
+    <Layout style={{ minHeight: '100vh' }}>
       <MySider />
+
       <Layout>
         <MyWrapper>{children}</MyWrapper>
       </Layout>

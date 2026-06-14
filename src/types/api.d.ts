@@ -61,3 +61,9 @@ declare interface Education {
   major: string
   location: string
 }
+
+declare interface LoginVo {
+  id: string
+  token: string
+  username: string
+}

@@ -17,23 +17,27 @@ export default function useExperienceHooks() {
   })
 
   /**
-   *  執行添加
+   * 執行添加
    */
   const { mutateAsync: addWorkingExp, isPending: isAddLoading } = useMutation({
-    mutationFn: (postBody: WorkingExpDto) => workingExpService.addWorkingExp(postBody),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+    mutationFn: async (postBody: WorkingExpDto) => {
+      const { isSuccess, message } = await workingExpService.addWorkingExp(postBody)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getWorkingExp'] })
     }
   })
 
   /**
-   *  執行編輯
+   * 執行編輯
    */
   const { mutateAsync: editWorkingExp, isPending: isEditLoading } = useMutation({
-    mutationFn: ({ id, postBody }: { id: number; postBody: WorkingExpDto }) => workingExpService.editWorkingExp(id, postBody),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+    mutationFn: async ({ id, postBody }: { id: number; postBody: WorkingExpDto }) => {
+      const { isSuccess, message } = await workingExpService.editWorkingExp(id, postBody)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getWorkingExp'] })
     }
   })
@@ -41,15 +45,17 @@ export default function useExperienceHooks() {
   /**
    * 執行刪除
    */
-  const { mutateAsync: deleteWorkingExp } = useMutation({
-    mutationFn: (id: number) => workingExpService.deleteWorkingExp(id),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+  const { mutateAsync: deleteWorkingExp, isPending: isDeleteLoading } = useMutation({
+    mutationFn: async (id: number) => {
+      const { isSuccess, message } = await workingExpService.deleteWorkingExp(id)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getWorkingExp'] })
     }
   })
 
-  const confirmLoading = isAddLoading || isEditLoading
+  const confirmLoading = isAddLoading || isEditLoading || isDeleteLoading
 
   return {
     data,

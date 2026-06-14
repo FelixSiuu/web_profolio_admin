@@ -17,23 +17,27 @@ export default function useEducationHooks() {
   })
 
   /**
-   *  執行添加
+   * 執行添加
    */
   const { mutateAsync: addEducation, isPending: isAddLoading } = useMutation({
-    mutationFn: (postBody: EduDto) => educationService.addEducation(postBody),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+    mutationFn: async (postBody: EduDto) => {
+      const { isSuccess, message } = await educationService.addEducation(postBody)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getEducation'] })
     }
   })
 
   /**
-   *  執行編輯
+   * 執行編輯
    */
   const { mutateAsync: editEducation, isPending: isEditLoading } = useMutation({
-    mutationFn: ({ id, postBody }: { id: number; postBody: EduDto }) => educationService.editEducation(id, postBody),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+    mutationFn: async ({ id, postBody }: { id: number; postBody: EduDto }) => {
+      const { isSuccess, message } = await educationService.editEducation(id, postBody)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getEducation'] })
     }
   })
@@ -42,9 +46,11 @@ export default function useEducationHooks() {
    * 執行刪除
    */
   const { mutateAsync: deleteEducation, isPending: isDeleteLoading } = useMutation({
-    mutationFn: (id: number) => educationService.deleteEducation(id),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+    mutationFn: async (id: number) => {
+      const { isSuccess, message } = await educationService.deleteEducation(id)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getEducation'] })
     }
   })

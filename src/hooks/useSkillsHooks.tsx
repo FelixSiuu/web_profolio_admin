@@ -19,9 +19,11 @@ export default function useSkillsHooks() {
 
   // 🎯 2. 執行添加 (Create)
   const { mutateAsync: addCoreSkill, isPending: isAddLoading } = useMutation({
-    mutationFn: (postBody: skillDto) => coreSkillsService.addCoreSkill(postBody),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+    mutationFn: async (postBody: skillDto) => {
+      const { isSuccess, message } = await coreSkillsService.addCoreSkill(postBody)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       // 🔥 關鍵：通知這把鑰匙的快取失效，Table 會在背景無感自動重新撈取最新數據
       queryClient.invalidateQueries({ queryKey: ['getCoreSkills'] })
     }
@@ -29,24 +31,28 @@ export default function useSkillsHooks() {
 
   // 🎯 3. 執行編輯 (Update)
   const { mutateAsync: editCoreSkill, isPending: isEditLoading } = useMutation({
-    mutationFn: ({ id, postBody }: { id: number; postBody: skillDto }) => coreSkillsService.editCoreSkill(id, postBody),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+    mutationFn: async ({ id, postBody }: { id: number; postBody: skillDto }) => {
+      const { isSuccess, message } = await coreSkillsService.editCoreSkill(id, postBody)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getCoreSkills'] })
     }
   })
 
-  // 🎯 3. 執行刪除 (Delete)
-  const { mutateAsync: deleteCoreSkill } = useMutation({
-    mutationFn: (id: number) => coreSkillsService.deleteCoreSkill(id),
-    onSuccess: (res) => {
-      if (!res.isSuccess) throw new Error(res.message)
+  // 🎯 4. 執行刪除 (Delete)
+  const { mutateAsync: deleteCoreSkill, isPending: isDeleteLoading } = useMutation({
+    mutationFn: async (id: number) => {
+      const { isSuccess, message } = await coreSkillsService.deleteCoreSkill(id)
+      if (!isSuccess) throw new Error(message)
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['getCoreSkills'] })
     }
   })
 
   // 🎯 5. 整合原本的 Loading 狀態，確保外部引用的變數名稱不變
-  const confirmLoading = isAddLoading || isEditLoading
+  const confirmLoading = isAddLoading || isEditLoading || isDeleteLoading
 
   return {
     data,
