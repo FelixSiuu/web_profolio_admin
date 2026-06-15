@@ -3,19 +3,20 @@
 import { useState } from 'react'
 import useEducationHooks from '@/hooks/useEducationHooks'
 import { Form, Table, Input, message, Button } from 'antd'
-import { EditableColumnType, getEducationColumns } from './getByActionColumns'
+import { EditableColumnType, getActionColums } from './getByActionColumns'
 
-interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
+interface EditableCellProps<T> extends React.HTMLAttributes<HTMLElement> {
   editing: boolean
   dataIndex: string
   title: string
   inputType: 'number' | 'text'
-  record: Education
+  record: T
   index: number
   required?: boolean
+  isTextArea?: boolean
 }
 
-const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({ editing, dataIndex, title, children, required = true, ...restProps }) => {
+const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps<Education>>> = ({ editing, dataIndex, title, children, required = true, isTextArea = false, ...restProps }) => {
   return (
     <td {...restProps}>
       {editing ? (
@@ -29,7 +30,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({ ed
             }
           ]}
         >
-          <Input />
+          {isTextArea ? <Input.TextArea autoSize={{ minRows: 2 }} /> : <Input />}
         </Form.Item>
       ) : (
         children
@@ -52,6 +53,7 @@ export default function Education() {
   const edit = (record: Education) => {
     form.setFieldsValue(record)
     setEditingKey(record.id)
+    setPendingRecord(null)
   }
 
   const cancel = () => {
@@ -99,7 +101,7 @@ export default function Education() {
     }
   }
 
-  const columns = getEducationColumns<Education>(
+  const columns = getActionColums(
     {
       onEdit: edit,
       onSave: save,
@@ -135,7 +137,7 @@ export default function Education() {
 
     return {
       ...col,
-      onCell: (record: Education) => ({
+      onCell: (record) => ({
         record,
         dataIndex: col.dataIndex,
         title: typeof col.title === 'string' ? col.title : String(col.title || ''),

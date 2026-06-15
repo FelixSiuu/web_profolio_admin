@@ -1,30 +1,70 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, message, Table } from 'antd'
-import { getCoreSkillsColumns } from './getByActionColumns'
-import EditModal from '../editModal'
+import { Form, Table, Input, message, Button } from 'antd'
+import { EditableColumnType, getActionColums } from './getByActionColumns'
 import useSkillsHooks from '@/hooks/useSkillsHooks'
 
-const editColumns = ['summary', 'details']
+interface EditableCellProps<T> extends React.HTMLAttributes<HTMLElement> {
+  editing: boolean
+  dataIndex: string
+  title: string
+  inputType: 'number' | 'text'
+  record: T
+  index: number
+  required?: boolean
+  isTextArea?: boolean
+}
+
+const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps<CoreSkill>>> = ({ editing, dataIndex, title, children, required = true, isTextArea = false, ...restProps }) => {
+  return (
+    <td {...restProps}>
+      {editing ? (
+        <Form.Item
+          name={dataIndex}
+          style={{ margin: 0 }}
+          rules={[
+            {
+              required: required,
+              message: `Please Input ${title}!`
+            }
+          ]}
+        >
+          {isTextArea ? <Input.TextArea autoSize={{ minRows: 2 }} /> : <Input />}
+        </Form.Item>
+      ) : (
+        children
+      )}
+    </td>
+  )
+}
 
 export default function CoreSkills() {
   const [messageApi, contextHolder] = message.useMessage()
-
-  // 🎯 1. 狀態全自動接管：從 Hook 拿到自動綁定快取的 data 與 loading 狀態
   const { data, confirmLoading, isLoading, deleteCoreSkill, editCoreSkill, addCoreSkill } = useSkillsHooks()
+  const [form] = Form.useForm()
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editItemId, setEditItemId] = useState<null | CoreSkill['id']>(null)
+  const [editingKey, setEditingKey] = useState<null | number>(null)
+  // 🎯 只用來記錄「當前正在被新增的虛擬行」，沒新增時就是 null
+  const [pendingRecord, setPendingRecord] = useState<CoreSkill | null>(null)
 
-  const editData = data.find((item) => item.id === editItemId)
+  const isEditing = (record: CoreSkill) => record.id === editingKey
 
-  // 🎯 3. 簡化後的刪除邏輯：不再需要手動呼叫 getData()
-  const handleDelete = async (id: number) => {
-    messageApi.open({ type: 'loading', content: 'Delete in progress', duration: 0 })
+  const edit = (record: CoreSkill) => {
+    form.setFieldsValue(record)
+    setEditingKey(record.id)
+    setPendingRecord(null)
+  }
+
+  const cancel = () => {
+    setEditingKey(null)
+    setPendingRecord(null)
+    form.resetFields()
+  }
+
+  const onDelete = async (id: number) => {
     try {
       await deleteCoreSkill(id)
-      messageApi.destroy()
       messageApi.success('Delete success!!')
     } catch (error) {
       messageApi.destroy()
@@ -32,54 +72,109 @@ export default function CoreSkills() {
     }
   }
 
-  // 4. 表格欄位配置
-  const columns = getCoreSkillsColumns({
-    onEdit: (record) => {
-      setEditItemId(record.id)
-      setModalOpen(true)
+  const save = async (key: number) => {
+    try {
+      const row = await form.validateFields()
+
+      // 合并编辑后的数据
+      const updatedRecord = {
+        ...data.find((item: CoreSkill) => item.id === key),
+        ...row
+      }
+
+      if (!pendingRecord) {
+        // 執行編輯
+        await editCoreSkill({
+          id: key,
+          postBody: updatedRecord
+        })
+        messageApi.success('Edit success!!')
+      } else {
+        // 執行添加
+        await addCoreSkill(updatedRecord)
+        messageApi.success('Add success!!')
+      }
+
+      setEditingKey(null)
+      setPendingRecord(null)
+    } catch (error) {
+      if (error instanceof Error) {
+        messageApi.error(error.message)
+      }
+    }
+  }
+
+  const columns = getActionColums(
+    {
+      onEdit: edit,
+      onSave: save,
+      onCancel: cancel,
+      onDelete: onDelete
     },
-    onDelete: (record) => {
-      handleDelete(record.id)
+    isEditing
+  )
+
+  const handleAdd = () => {
+    const newId = data.length > 0 ? Math.max(...data.map((item) => item.id)) + 1 : 1
+    const newRecord: CoreSkill = {
+      id: newId,
+      summary: '',
+      details: '',
+      createTime: '',
+      updateTime: ''
+    }
+
+    // 🟢 動作：把虛擬行存起來，並直接開啟編輯
+    setPendingRecord(newRecord)
+    setEditingKey(newId)
+    form.setFieldsValue(newRecord)
+  }
+
+  // 🎯 這裡宣告成剛才訂製好的 EditableColumnType<Education> 陣列項
+  const mergedColumns = columns.map((col: EditableColumnType<CoreSkill>) => {
+    if (!col.editable) {
+      return col
+    }
+
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        dataIndex: col.dataIndex,
+        title: typeof col.title === 'string' ? col.title : String(col.title || ''),
+        editing: isEditing(record),
+        required: col.required ?? true, // 預設為required，除非特別標註不需要
+        isTextArea: col.isLongText
+      })
     }
   })
-
-  // 🎯 5. 簡化後的儲存邏輯：同樣砍掉手動的 getData()
-  const handleSave = async (newValues: CoreSkill) => {
-    const isAddMode = !editItemId
-    const postBody = { summary: newValues.summary, details: newValues.details }
-
-    try {
-      if (isAddMode) {
-        await addCoreSkill(postBody)
-      } else {
-        await editCoreSkill({
-          id: editItemId,
-          postBody: postBody
-        })
-      }
-      setModalOpen(false)
-      setEditItemId(null)
-    } catch (error) {
-      if (error instanceof Error) messageApi.error(error.message)
-    }
-  }
-
-  const handleCancel = () => {
-    setEditItemId(null)
-    setModalOpen(false)
-  }
 
   return (
     <section>
       {contextHolder}
 
-      <Table<CoreSkill> loading={isLoading} dataSource={data} columns={columns} rowKey={'id'} />
+      <Form form={form} component={false} disabled={confirmLoading}>
+        <Table
+          components={{
+            body: {
+              cell: EditableCell
+            }
+          }}
+          bordered
+          dataSource={pendingRecord ? [...data, pendingRecord] : data}
+          columns={mergedColumns}
+          rowClassName="editable-row"
+          pagination={{
+            onChange: cancel
+          }}
+          loading={isLoading}
+          rowKey="id"
+        />
+      </Form>
 
-      <Button type="primary" className="mt-3" onClick={() => setModalOpen(true)}>
+      <Button type="primary" className="mt-3" onClick={handleAdd}>
         Add a Skill !!
       </Button>
-
-      {modalOpen && <EditModal<CoreSkill> title={editData ? 'edit Skill' : 'add a Skill'} isOpen={modalOpen} confirmLoading={confirmLoading} editData={editData} editColumns={editColumns} onSave={handleSave} onClose={handleCancel} />}
     </section>
   )
 }

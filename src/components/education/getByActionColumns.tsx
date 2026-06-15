@@ -11,7 +11,8 @@ interface ColumnActions<T> {
 
 // 🎯 利用 Omit 抽離原有的 onCell，並自己精準宣告擴充後的結構
 export type EditableColumnType<T> = Omit<ColumnType<T>, 'onCell'> & {
-  editable?: boolean
+  isLongText?: boolean // 是否長文字？是：使用textArea
+  editable?: boolean // 是否可編輯
   dataIndex?: string
   required?: boolean
   title?: React.ReactNode // 確保 map 內讀取 title 時型別相容
@@ -20,7 +21,7 @@ export type EditableColumnType<T> = Omit<ColumnType<T>, 'onCell'> & {
 
 export type EditableColumnsType<T> = EditableColumnType<T>[]
 
-export const getEducationColumns = <T extends Education>(actions: ColumnActions<T>, isEditing: (record: T) => boolean): EditableColumnsType<T> => [
+export const getActionColums = <T extends Education>(actions: ColumnActions<T>, isEditing: (record: T) => boolean): EditableColumnsType<T> => [
   {
     title: 'id',
     dataIndex: 'id',

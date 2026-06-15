@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Form, Table, Input, message, Button } from 'antd'
-import { EditableColumnType, getAboutMeColumns } from './getByActionColumns'
+import { EditableColumnType, getActionColums } from './getByActionColumns'
 import useAboutHooks from '@/hooks/useAboutHooks'
 interface EditableCellProps<T> extends React.HTMLAttributes<HTMLElement> {
   editing: boolean
@@ -52,6 +52,7 @@ export default function AboutMe() {
   const edit = (record: About) => {
     form.setFieldsValue(record)
     setEditingKey(record.id)
+    setPendingRecord(null)
   }
 
   const cancel = () => {
@@ -102,7 +103,7 @@ export default function AboutMe() {
     }
   }
 
-  const columns = getAboutMeColumns<About>(
+  const columns = getActionColums(
     {
       onEdit: edit,
       onSave: save,
@@ -135,7 +136,7 @@ export default function AboutMe() {
 
     return {
       ...col,
-      onCell: (record: About) => ({
+      onCell: (record) => ({
         record,
         dataIndex: col.dataIndex,
         title: typeof col.title === 'string' ? col.title : String(col.title || ''),
