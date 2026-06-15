@@ -40,11 +40,10 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({ ed
 
 export default function Education() {
   const [messageApi, contextHolder] = message.useMessage()
-
   const { data, isLoading, confirmLoading, addEducation, editEducation, deleteEducation } = useEducationHooks()
   const [form] = Form.useForm()
-  const [editingKey, setEditingKey] = useState<null | number>(null)
 
+  const [editingKey, setEditingKey] = useState<null | number>(null)
   // 🎯 只用來記錄「當前正在被新增的虛擬行」，沒新增時就是 null
   const [pendingRecord, setPendingRecord] = useState<Education | null>(null)
 

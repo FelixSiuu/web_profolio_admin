@@ -1,85 +1,148 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, message, Table } from 'antd'
-import { getAboutMeColumns } from './getByActionColumns'
-import EditModal from '../editModal'
+import { Form, Table, Input, message, Button } from 'antd'
+import { EditableColumnType, getAboutMeColumns } from './getByActionColumns'
 import useAboutHooks from '@/hooks/useAboutHooks'
+interface EditableCellProps<T> extends React.HTMLAttributes<HTMLElement> {
+  editing: boolean
+  dataIndex: string
+  title: string
+  inputType: 'number' | 'text'
+  record: T
+  index: number
+  required?: boolean
+  isTextArea?: boolean
+}
 
-const editColumns = ['paragraph']
+const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps<About>>> = ({ editing, dataIndex, title, children, required = true, isTextArea = false, ...restProps }) => {
+  return (
+    <td {...restProps}>
+      {editing ? (
+        <Form.Item
+          name={dataIndex}
+          style={{ margin: 0 }}
+          rules={[
+            {
+              required: required,
+              message: `Please Input ${title}!`
+            }
+          ]}
+        >
+          {isTextArea ? <Input.TextArea autoSize={{ minRows: 2 }} /> : <Input />}
+        </Form.Item>
+      ) : (
+        children
+      )}
+    </td>
+  )
+}
 
 export default function AboutMe() {
   const [messageApi, contextHolder] = message.useMessage()
   const { data, confirmLoading, isLoading, editAboutMe, deleteAboutMe, addAboutMe } = useAboutHooks()
+  const [form] = Form.useForm()
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editItemId, setEditItemId] = useState<null | About['id']>(null)
+  const [editingKey, setEditingKey] = useState<null | number>(null)
+  // 🎯 只用來記錄「當前正在被新增的虛擬行」，沒新增時就是 null
+  const [pendingRecord, setPendingRecord] = useState<About | null>(null)
 
-  const editData = data.find((item) => item.id === editItemId)
+  const isEditing = (record: About) => record.id === editingKey
 
-  const handleDelete = async (id: number) => {
-    messageApi.open({
-      type: 'loading',
-      content: 'Delete in progress',
-      duration: 0
-    })
+  const edit = (record: About) => {
+    form.setFieldsValue(record)
+    setEditingKey(record.id)
+  }
 
+  const cancel = () => {
+    setEditingKey(null)
+    setPendingRecord(null)
+    form.resetFields()
+  }
+
+  const onDelete = async (id: number) => {
     try {
       await deleteAboutMe(id)
-      messageApi.destroy()
-      messageApi.open({
-        type: 'success',
-        content: 'Delete success!!'
-      })
+      messageApi.success('Delete success!!')
     } catch (error) {
       messageApi.destroy()
-      if (error instanceof Error) {
-        messageApi.error(error?.message)
-      }
+      if (error instanceof Error) messageApi.error(error.message)
     }
   }
 
-  const handleSave = async (newValues: About) => {
-    const isAddMode = !editItemId
-    const postBody = { paragraph: newValues.paragraph }
-
+  const save = async (key: number) => {
     try {
-      switch (true) {
-        case isAddMode: {
-          await addAboutMe(postBody)
-          messageApi.success('add success!!')
-          break
-        }
-        case !isAddMode: {
-          await editAboutMe({
-            id: editItemId,
-            postBody
-          })
-          messageApi.success('edit success!!')
-          break
-        }
+      const row = await form.validateFields()
+
+      // 合并编辑后的数据
+      const updatedRecord = {
+        ...data.find((item: About) => item.id === key),
+        ...row
       }
+
+      if (!pendingRecord) {
+        // 執行編輯
+        await editAboutMe({
+          id: key,
+          postBody: updatedRecord
+        })
+        messageApi.success('Edit success!!')
+      } else {
+        // 執行添加
+        await addAboutMe(updatedRecord)
+        messageApi.success('Add success!!')
+      }
+
+      setEditingKey(null)
+      setPendingRecord(null)
     } catch (error) {
       if (error instanceof Error) {
         messageApi.error(error.message)
       }
-    } finally {
-      setModalOpen(false)
     }
   }
 
-  const handleCancel = () => {
-    setEditItemId(null)
-    setModalOpen(false)
+  const columns = getAboutMeColumns<About>(
+    {
+      onEdit: edit,
+      onSave: save,
+      onCancel: cancel,
+      onDelete: onDelete
+    },
+    isEditing
+  )
+
+  const handleAdd = () => {
+    const newId = data.length > 0 ? Math.max(...data.map((item) => item.id)) + 1 : 1
+    const newRecord: About = {
+      id: newId,
+      paragraph: '',
+      createTime: '',
+      updateTime: ''
+    }
+
+    // 🟢 動作：把虛擬行存起來，並直接開啟編輯
+    setPendingRecord(newRecord)
+    setEditingKey(newId)
+    form.setFieldsValue(newRecord)
   }
 
-  const columns = getAboutMeColumns({
-    onEdit: (record) => {
-      setModalOpen(true)
-      setEditItemId(record.id)
-    },
-    onDelete: (record) => {
-      handleDelete(record.id)
+  // 🎯 這裡宣告成剛才訂製好的 EditableColumnType<Education> 陣列項
+  const mergedColumns = columns.map((col: EditableColumnType<About>) => {
+    if (!col.editable) {
+      return col
+    }
+
+    return {
+      ...col,
+      onCell: (record: About) => ({
+        record,
+        dataIndex: col.dataIndex,
+        title: typeof col.title === 'string' ? col.title : String(col.title || ''),
+        editing: isEditing(record),
+        required: col.required ?? true, // 預設為required，除非特別標註不需要
+        isTextArea: col.isLongText
+      })
     }
   })
 
@@ -87,13 +150,28 @@ export default function AboutMe() {
     <section>
       {contextHolder}
 
-      <Table<About> loading={isLoading} dataSource={data} columns={columns} rowKey={'id'} />
+      <Form form={form} component={false} disabled={confirmLoading}>
+        <Table
+          components={{
+            body: {
+              cell: EditableCell
+            }
+          }}
+          bordered
+          dataSource={pendingRecord ? [...data, pendingRecord] : data}
+          columns={mergedColumns}
+          rowClassName="editable-row"
+          pagination={{
+            onChange: cancel
+          }}
+          loading={isLoading}
+          rowKey="id"
+        />
+      </Form>
 
-      <Button type="primary" className="mt-3" onClick={() => setModalOpen(true)}>
+      <Button type="primary" className="mt-3" onClick={handleAdd}>
         Add a paragraph
       </Button>
-
-      {modalOpen && <EditModal<About> title={editData ? 'edit About Me' : 'add About Me'} isOpen={modalOpen} confirmLoading={confirmLoading} editData={editData} editColumns={editColumns} onSave={handleSave} onClose={handleCancel} />}
     </section>
   )
 }
