@@ -34,16 +34,18 @@ const Login = () => {
       const data = await login(postBody)
 
       Cookies.set('token', data?.token, { expires: 2 })
+      messageApi.destroy()
 
       router.push('/overview')
     } catch (error) {
+      messageApi.destroy()
       if (error instanceof Error) {
-        messageApi.destroy()
         messageApi.open({ type: 'error', content: error.message })
+      } else {
+        messageApi.open({ type: 'error', content: 'Login failed, please try again.' })
       }
       refreshCaptcha()
     } finally {
-      messageApi.destroy()
       form.setFieldValue('captcha', '')
     }
   }
