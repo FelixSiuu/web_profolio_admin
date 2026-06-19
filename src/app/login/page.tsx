@@ -38,6 +38,7 @@ const Login = () => {
       router.push('/overview')
     } catch (error) {
       if (error instanceof Error) {
+        messageApi.destroy()
         messageApi.open({ type: 'error', content: error.message })
       }
       refreshCaptcha()
