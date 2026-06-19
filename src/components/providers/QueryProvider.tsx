@@ -2,11 +2,9 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 
 export default function QueryProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -16,14 +14,6 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
             gcTime: 1000 * 60 * 10, // 快取留存 10 分鐘
             refetchOnWindowFocus: false, // 切換視窗不偷偷重新撈取
             retry: 1 // 失敗自動重試 1 次
-          },
-          mutations: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onError: (error: any) => {
-              if (error.response?.status === 401) {
-                router.push('/login')
-              }
-            }
           }
         }
       })

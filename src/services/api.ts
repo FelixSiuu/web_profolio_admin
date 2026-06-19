@@ -2,6 +2,7 @@
 import axios from 'axios'
 import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 import Cookies from 'js-cookie'
+import { clearAuthSession } from '@/services/auth-session'
 
 declare module 'axios' {
   export interface AxiosInstance {
@@ -19,6 +20,24 @@ const api = axios.create({
     'Content-Type': 'application/json'
   }
 })
+
+let isHandlingUnauthorized = false
+
+const handleUnauthorized = () => {
+  if (isHandlingUnauthorized) return
+
+  isHandlingUnauthorized = true
+  clearAuthSession()
+
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+    window.location.replace('/login')
+  }
+
+  // Allow handling future 401 events after this tick.
+  setTimeout(() => {
+    isHandlingUnauthorized = false
+  }, 0)
+}
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -48,9 +67,7 @@ api.interceptors.response.use(
           break
         case 401: {
           console.error('🔒 認證失效，請重新登入 (401)')
-
-          // 移除token
-          Cookies.remove('token')
+          handleUnauthorized()
           break
         }
       }

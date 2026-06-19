@@ -8,10 +8,12 @@ import { LoginDto } from '@/services/user.service'
 import Cookies from 'js-cookie'
 import RegisterForm from '@/components/registerForm'
 import { useRouter } from 'next/navigation'
+import { useAuthStore } from '@/stores/auth.store'
 
 const Login = () => {
   const [form] = Form.useForm()
   const router = useRouter()
+  const setUser = useAuthStore((state) => state.setUser)
   const [messageApi, contextHolder] = message.useMessage()
   const { captchaImgUrl, isFetchingCaptcha, isPendingLogin, login, refreshCaptcha } = useUserHooks()
 
@@ -33,7 +35,8 @@ const Login = () => {
 
       const data = await login(postBody)
 
-      Cookies.set('token', data?.token, { expires: 2 })
+      Cookies.set('token', data.token, { expires: 2 })
+      setUser({ id: data.id, username: data.username })
       messageApi.destroy()
 
       router.push('/overview')
