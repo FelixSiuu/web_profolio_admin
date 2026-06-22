@@ -8,9 +8,6 @@ import EditModal from './editModal'
 
 const editColumns = [
   {
-    name: 'workingId'
-  },
-  {
     name: 'startDate'
   },
   {

@@ -15,11 +15,6 @@ export const getWorkingExperienceColumns = <T extends WorkingExperience>(actions
     key: 'id'
   },
   {
-    title: 'working id',
-    dataIndex: 'workingId',
-    key: 'workingId'
-  },
-  {
     title: 'start date',
     dataIndex: 'startDate',
     key: 'startDate'

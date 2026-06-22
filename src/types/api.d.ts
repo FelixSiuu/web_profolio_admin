@@ -41,7 +41,6 @@ declare interface KeyResponsibility {
 
 declare interface WorkingExperience {
   id: number
-  workingId: number
   startDate: string
   endDate: string | null
   jobTitle: string
